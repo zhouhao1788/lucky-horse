@@ -1,0 +1,634 @@
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>马年迎好运</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 自定义 Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#e53e3e',
+                        secondary: '#d69e2e',
+                        accent: '#dd6b20',
+                        dark: '#744210',
+                        light: '#fffaf0'
+                    },
+                    fontFamily: {
+                        sans: ['Arial', 'sans-serif'],
+                    },
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            }
+            .text-shadow-lg {
+                text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+            }
+            .prize-animation {
+                animation: prize-popup 0.5s ease-out forwards;
+            }
+            @keyframes prize-popup {
+                0% {
+                    transform: scale(0.5);
+                    opacity: 0;
+                }
+                70% {
+                    transform: scale(1.1);
+                }
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+            .prize-wheel {
+                animation: wheel-spin 3s ease-out forwards;
+            }
+            @keyframes wheel-spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(var(--wheel-rotation));
+                }
+            }
+            .confetti {
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                background-color: var(--confetti-color);
+                border-radius: 50%;
+                animation: confetti-fall 3s ease-in-out forwards;
+            }
+            @keyframes confetti-fall {
+                0% {
+                    transform: translateY(-10vh) rotate(0deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh) rotate(720deg);
+                    opacity: 0;
+                }
+            }
+        }
+    </style>
+</head>
+<body class="bg-light min-h-screen flex flex-col">
+    <!-- 背景图片 -->
+    <div id="background-image" class="fixed inset-0 w-full h-full bg-cover bg-center z-0" style="background-image: url('https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/dc62ded8a1554e6fb3c91872e7d09d45~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260202163802AEF6B7B7F513EE3695BE&rrcfp=f06b921b&x-expires=1772613490&x-signature=k%2FfyY7tSsp8Oxf6OtFyFnUmRhWo%3D');">
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="relative z-10 flex flex-col items-center justify-center flex-1 px-4 py-8">
+        <!-- 活动标题 -->
+        <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-primary mb-8 text-center text-shadow-lg">
+            马年迎好运活动
+        </h1>
+
+        <!-- 抽奖区域 -->
+        <div class="w-full max-w-md bg-white bg-opacity-90 rounded-2xl shadow-xl p-6 mb-8">
+            <!-- 姓名输入 -->
+            <div class="mb-6">
+                <label for="name-input" class="block text-lg font-medium text-gray-700 mb-2">请输入您的姓名</label>
+                <input type="text" id="name-input" class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入真实姓名" maxlength="10">
+            </div>
+
+            <!-- 抽奖按钮 -->
+            <button id="draw-button" class="w-full py-4 bg-primary hover:bg-red-700 text-white text-xl font-bold rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                开始迎好运
+            </button>
+        </div>
+
+        <!-- 活动规则 -->
+        <div class="w-full max-w-md bg-white bg-opacity-80 rounded-xl shadow-lg p-4 mb-4">
+            <h2 class="text-lg font-bold text-gray-800 mb-2">活动规则</h2>
+            <ul class="text-sm text-gray-600 space-y-1">
+                <li>1. 输入姓名后点击“开始迎好运”按钮参与活动</li>
+                <li>2. 每位用户仅有一次迎好运机会</li>
+                <li>3. 好运数量有限，先到先得</li>
+                <li>4. 活动最终解释权归主办方所有</li>
+            </ul>
+        </div>
+
+        <!-- 管理员入口 -->
+        <div class="mt-auto w-full max-w-md text-center">
+            <button id="admin-button" class="text-sm text-gray-600 hover:text-primary transition-colors duration-300">
+                <i class="fa fa-lock mr-1"></i> 管理员入口
+            </button>
+        </div>
+    </div>
+
+    <!-- 抽奖结果弹窗 -->
+    <div id="result-modal" class="fixed inset-0 z-50 flex items-center justify-center px-4 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50" id="modal-overlay"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md prize-animation">
+            <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                <i class="fa fa-times text-xl"></i>
+            </button>
+            
+            <div class="text-center py-4">
+                <h2 id="result-title" class="text-2xl font-bold text-primary mb-4">恭喜抽中好运！</h2>
+                <div id="prize-wheel" class="w-48 h-48 mx-auto mb-6 relative hidden">
+                    <div class="absolute inset-0 rounded-full border-8 border-secondary overflow-hidden">
+                        <div id="wheel-segments" class="w-full h-full">
+                            <!-- 轮盘扇区将通过JS动态生成 -->
+                        </div>
+                        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-8 bg-red-500"></div>
+                    </div>
+                </div>
+                <div id="prize-result" class="mb-6">
+                    <div id="prize-name" class="text-3xl font-bold text-secondary mb-2">一等奖</div>
+                    <div id="prize-description" class="text-gray-600">恭喜您获得好运！</div>
+                </div>
+                <button id="confirm-result" class="px-8 py-3 bg-primary hover:bg-red-700 text-white font-bold rounded-full shadow-lg transform transition hover:scale-105 active:scale-95">
+                    确认
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 错误提示弹窗 -->
+    <div id="error-modal" class="fixed inset-0 z-50 flex items-center justify-center px-4 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50" id="error-overlay"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+            <button id="close-error" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                <i class="fa fa-times text-xl"></i>
+            </button>
+            
+            <div class="text-center py-4">
+                <h2 class="text-2xl font-bold text-red-500 mb-4">提示</h2>
+                <p id="error-message" class="text-gray-700 mb-6">错误信息将显示在这里</p>
+                <button id="confirm-error" class="px-8 py-3 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-full shadow-lg">
+                    确定
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理员登录弹窗 -->
+    <div id="admin-modal" class="fixed inset-0 z-50 flex items-center justify-center px-4 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50" id="admin-overlay"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+            <button id="close-admin" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                <i class="fa fa-times text-xl"></i>
+            </button>
+            
+            <div class="text-center py-4">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">管理员登录</h2>
+                <div class="mb-4">
+                    <input type="password" id="admin-password" class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入管理员密码">
+                </div>
+                <button id="login-admin" class="px-8 py-3 bg-primary hover:bg-red-700 text-white font-bold rounded-full shadow-lg">
+                    登录
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局数据
+        let participantList = []; // 参与名单
+        let prizeList = [];       // 好运列表
+        let winnerList = [];      // 抽好运记录
+        
+        // 默认好运设置
+        const defaultPrizes = [
+            { id: "1", name: "一等奖", quantity: 1, remaining: 1, probability: 0.05 },
+            { id: "2", name: "二等奖", quantity: 3, remaining: 3, probability: 0.1 },
+            { id: "3", name: "三等奖", quantity: 5, remaining: 5, probability: 0.15 },
+            { id: "4", name: "四等奖", quantity: 10, remaining: 10, probability: 0.2 },
+            { id: "5", name: "五等奖", quantity: 20, remaining: 20, probability: 0.2 },
+            { id: "6", name: "六等奖", quantity: 30, remaining: 30, probability: 0.15 },
+            { id: "7", name: "七等奖", quantity: 50, remaining: 50, probability: 0.1 },
+            { id: "special", name: "一马当先", quantity: 999, remaining: 999, probability: 1 } // 特殊好运
+        ];
+        
+        // 默认参与名单（示例数据）
+        const defaultParticipants = [
+            { id: "1", name: "张三", isWinner: false, prizeId: null },
+            { id: "2", name: "李四", isWinner: false, prizeId: null },
+            { id: "3", name: "王五", isWinner: false, prizeId: null },
+            { id: "4", name: "赵六", isWinner: false, prizeId: null },
+            { id: "5", name: "钱七", isWinner: false, prizeId: null },
+            { id: "6", name: "孙八", isWinner: false, prizeId: null },
+            { id: "7", name: "周九", isWinner: false, prizeId: null },
+            { id: "8", name: "吴十", isWinner: false, prizeId: null }
+        ];
+
+        // DOM 元素
+        const nameInput = document.getElementById('name-input');
+        const drawButton = document.getElementById('draw-button');
+        const resultModal = document.getElementById('result-modal');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const closeModal = document.getElementById('close-modal');
+        const confirmResult = document.getElementById('confirm-result');
+        const prizeName = document.getElementById('prize-name');
+        const prizeDescription = document.getElementById('prize-description');
+        const errorModal = document.getElementById('error-modal');
+        const errorOverlay = document.getElementById('error-overlay');
+        const closeError = document.getElementById('close-error');
+        const confirmError = document.getElementById('confirm-error');
+        const errorMessage = document.getElementById('error-message');
+        const adminButton = document.getElementById('admin-button');
+        const adminModal = document.getElementById('admin-modal');
+        const adminOverlay = document.getElementById('admin-overlay');
+        const closeAdmin = document.getElementById('close-admin');
+        const adminPassword = document.getElementById('admin-password');
+        const loginAdmin = document.getElementById('login-admin');
+        const prizeWheel = document.getElementById('prize-wheel');
+        const wheelSegments = document.getElementById('wheel-segments');
+        
+        // 初始化函数
+        function init() {
+            // 加载数据
+            loadData();
+            
+            // 绑定事件
+            drawButton.addEventListener('click', handleDraw);
+            closeModal.addEventListener('click', hideResultModal);
+            modalOverlay.addEventListener('click', hideResultModal);
+            confirmResult.addEventListener('click', hideResultModal);
+            closeError.addEventListener('click', hideErrorModal);
+            errorOverlay.addEventListener('click', hideErrorModal);
+            confirmError.addEventListener('click', hideErrorModal);
+            adminButton.addEventListener('click', showAdminModal);
+            closeAdmin.addEventListener('click', hideAdminModal);
+            adminOverlay.addEventListener('click', hideAdminModal);
+            loginAdmin.addEventListener('click', handleAdminLogin);
+            
+            // 输入框回车事件
+            nameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleDraw();
+                }
+            });
+            
+            adminPassword.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleAdminLogin();
+                }
+            });
+        }
+        
+        // 加载数据
+        function loadData() {
+            // 从 localStorage 加载数据
+            const savedParticipants = localStorage.getItem('participantList');
+            const savedPrizes = localStorage.getItem('prizeList');
+            const savedWinners = localStorage.getItem('winnerList');
+            
+            // 如果有保存的数据则加载，否则使用默认数据
+            participantList = savedParticipants ? JSON.parse(savedParticipants) : defaultParticipants;
+            prizeList = savedPrizes ? JSON.parse(savedPrizes) : defaultPrizes;
+            winnerList = savedWinners ? JSON.parse(savedWinners) : [];
+            
+            // 更新奖项剩余数量
+            updatePrizeRemaining();
+        }
+        
+        // 保存数据
+        function saveData() {
+            localStorage.setItem('participantList', JSON.stringify(participantList));
+            localStorage.setItem('prizeList', JSON.stringify(prizeList));
+            localStorage.setItem('winnerList', JSON.stringify(winnerList));
+        }
+        
+        // 更新奖项剩余数量
+        function updatePrizeRemaining() {
+            // 重置所有奖项的剩余数量
+            prizeList.forEach(prize => {
+                prize.remaining = prize.quantity;
+            });
+            
+            // 根据中奖记录减少剩余数量
+            winnerList.forEach(winner => {
+                const prize = prizeList.find(p => p.id === winner.prizeId);
+                if (prize) {
+                    prize.remaining--;
+                }
+            });
+        }
+        
+        // 处理抽奖
+        function handleDraw() {
+            const name = nameInput.value.trim();
+            
+            // 验证输入
+            if (!name) {
+                showErrorModal('请输入您的姓名');
+                return;
+            }
+            
+            // 检查是否已抽过好运
+            const existingWinner = winnerList.find(w => w.name === name);
+            if (existingWinner) {
+                showErrorModal(`您已经抽过好运了！您的好运是：${existingWinner.prizeName}`);
+                return;
+            }
+            
+            // 执行抽奖
+            const result = drawPrize(name);
+            
+            if (result.success) {
+                // 显示抽奖动画和结果
+                showPrizeAnimation(result.prize);
+            } else {
+                showErrorModal(result.message);
+            }
+        }
+        
+        // 抽奖算法
+        function drawPrize(participantName) {
+            // 检查参与者是否在名单中
+            const participant = participantList.find(p => p.name === participantName);
+            
+            // 如果不在名单中，直接授予特殊好运
+            if (!participant) {
+                const specialPrize = prizeList.find(p => p.id === "special");
+                
+                // 记录抽好运信息
+                winnerList.push({
+                    id: Date.now().toString(),
+                    name: participantName,
+                    prizeId: specialPrize.id,
+                    prizeName: specialPrize.name,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // 更新奖项剩余数量
+                specialPrize.remaining--;
+                
+                // 保存数据
+                saveData();
+                
+                return { success: true, prize: specialPrize };
+            }
+            
+            // 如果已抽过好运，返回错误
+            if (participant.isWinner) {
+                return { success: false, message: "您已经抽过好运了！" };
+            }
+            
+            // 计算各奖项的当前概率
+            const availablePrizes = prizeList.filter(p => p.remaining > 0 && p.id !== "special");
+            
+            // 如果没有可用好运，返回特殊好运
+            if (availablePrizes.length === 0) {
+                const specialPrize = prizeList.find(p => p.id === "special");
+                
+                // 更新参与者状态
+                participant.isWinner = true;
+                participant.prizeId = specialPrize.id;
+                
+                // 记录抽好运信息
+                winnerList.push({
+                    id: participant.id,
+                    name: participant.name,
+                    prizeId: specialPrize.id,
+                    prizeName: specialPrize.name,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // 更新奖项剩余数量
+                specialPrize.remaining--;
+                
+                // 保存数据
+                saveData();
+                
+                return { success: true, prize: specialPrize };
+            }
+            
+            // 计算总权重
+            const totalWeight = availablePrizes.reduce((sum, p) => sum + p.probability * p.remaining, 0);
+            
+            // 随机抽奖
+            let random = Math.random() * totalWeight;
+            let selectedPrize = null;
+            
+            for (const prize of availablePrizes) {
+                random -= prize.probability * prize.remaining;
+                if (random <= 0) {
+                    selectedPrize = prize;
+                    break;
+                }
+            }
+            
+            // 如果没有选中任何奖项（理论上不会发生），返回特殊奖项
+            if (!selectedPrize) {
+                selectedPrize = prizeList.find(p => p.id === "special");
+            }
+            
+            // 更新数据
+            selectedPrize.remaining--;
+            participant.isWinner = true;
+            participant.prizeId = selectedPrize.id;
+            
+            // 记录中奖信息
+            winnerList.push({
+                id: participant.id,
+                name: participant.name,
+                prizeId: selectedPrize.id,
+                prizeName: selectedPrize.name,
+                timestamp: new Date().toISOString()
+            });
+            
+            // 保存数据
+            saveData();
+            
+            return { success: true, prize: selectedPrize };
+        }
+        
+        // 显示抽奖动画和结果
+        function showPrizeAnimation(prize) {
+            // 准备轮盘
+            preparePrizeWheel();
+            
+            // 显示轮盘
+            prizeWheel.classList.remove('hidden');
+            
+            // 随机旋转角度（2-5圈）
+            const rotations = 2 + Math.random() * 3;
+            const totalRotation = rotations * 360;
+            
+            // 计算目标奖项的角度位置
+            const prizeIndex = prizeList.findIndex(p => p.id === prize.id && p.id !== "special");
+            const anglePerPrize = 360 / (prizeList.length - 1); // 不包括特殊奖项
+            const targetAngle = prizeIndex * anglePerPrize;
+            
+            // 设置旋转变量
+            document.documentElement.style.setProperty('--wheel-rotation', `${totalRotation + targetAngle}deg`);
+            
+            // 添加旋转动画类
+            wheelSegments.classList.add('prize-wheel');
+            
+            // 动画结束后显示结果
+            setTimeout(() => {
+                // 隐藏轮盘
+                prizeWheel.classList.add('hidden');
+                
+                // 显示结果
+                prizeName.textContent = prize.name;
+                
+                if (prize.id === "special") {
+                    prizeDescription.textContent = "感谢参与，您获得了参与好运！";
+                } else {
+                    prizeDescription.textContent = `恭喜您获得${prize.name}！剩余${prize.remaining}个。`;
+                }
+                
+                // 显示结果弹窗
+                showResultModal();
+                
+                // 创建庆祝效果
+                createConfetti();
+            }, 3000); // 动画持续3秒
+        }
+        
+        // 准备抽奖轮盘
+        function preparePrizeWheel() {
+            // 清空现有扇区
+            wheelSegments.innerHTML = '';
+            
+            // 重置轮盘样式
+            wheelSegments.className = '';
+            
+            // 颜色数组
+            const colors = [
+                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
+                '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
+            ];
+            
+            // 获取有效好运（不包括特殊好运）
+            const validPrizes = prizeList.filter(p => p.id !== "special");
+            const prizeCount = validPrizes.length;
+            
+            // 计算每个扇区的角度
+            const anglePerPrize = 360 / prizeCount;
+            
+            // 创建扇区
+            validPrizes.forEach((prize, index) => {
+                const startAngle = index * anglePerPrize;
+                const endAngle = (index + 1) * anglePerPrize;
+                
+                // 创建扇区元素
+                const segment = document.createElement('div');
+                segment.className = 'absolute inset-0';
+                segment.style.transformOrigin = 'center';
+                segment.style.transform = `rotate(${startAngle}deg)`;
+                
+                // 创建扇区形状
+                const shape = document.createElement('div');
+                shape.className = 'absolute h-full w-1/2 right-0';
+                shape.style.backgroundColor = colors[index % colors.length];
+                shape.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 ${50 - anglePerPrize/3.6}%, 0 ${50 + anglePerPrize/3.6}%)`;
+                
+                // 创建文字容器
+                const textContainer = document.createElement('div');
+                textContainer.className = 'absolute top-1/2 right-0 transform -translate-y-1/2 rotate-180 origin-right';
+                textContainer.style.width = '80%';
+                textContainer.style.paddingRight = '10%';
+                
+                // 创建奖项名称
+                const text = document.createElement('div');
+                text.className = 'text-white text-xs font-bold transform rotate-90 origin-center';
+                text.style.marginTop = '100%';
+                text.textContent = prize.name;
+                
+                // 组合元素
+                textContainer.appendChild(text);
+                shape.appendChild(textContainer);
+                segment.appendChild(shape);
+                wheelSegments.appendChild(segment);
+            });
+        }
+        
+        // 创建庆祝效果
+        function createConfetti() {
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
+            const confettiCount = 100;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.animationDelay = `${Math.random() * 3}s`;
+                confetti.style.animationDuration = `${3 + Math.random() * 2}s`;
+                confetti.style.setProperty('--confetti-color', colors[Math.floor(Math.random() * colors.length)]);
+                confetti.style.width = `${5 + Math.random() * 10}px`;
+                confetti.style.height = `${5 + Math.random() * 10}px`;
+                
+                document.body.appendChild(confetti);
+                
+                // 动画结束后移除元素
+                confetti.addEventListener('animationend', () => {
+                    confetti.remove();
+                });
+            }
+        }
+        
+        // 显示结果弹窗
+        function showResultModal() {
+            resultModal.classList.remove('hidden');
+        }
+        
+        // 隐藏结果弹窗
+        function hideResultModal() {
+            resultModal.classList.add('hidden');
+            nameInput.value = '';
+        }
+        
+        // 显示错误弹窗
+        function showErrorModal(message) {
+            errorMessage.textContent = message;
+            errorModal.classList.remove('hidden');
+        }
+        
+        // 隐藏错误弹窗
+        function hideErrorModal() {
+            errorModal.classList.add('hidden');
+        }
+        
+        // 显示管理员登录弹窗
+        function showAdminModal() {
+            adminModal.classList.remove('hidden');
+            adminPassword.value = '';
+        }
+        
+        // 隐藏管理员登录弹窗
+        function hideAdminModal() {
+            adminModal.classList.add('hidden');
+        }
+        
+        // 处理管理员登录
+        function handleAdminLogin() {
+            const password = adminPassword.value.trim();
+            
+            // 默认管理员密码（实际应用中应该更安全）
+            const correctPassword = 'admin123';
+            
+            if (password === correctPassword) {
+                // 登录成功，设置登录标志并跳转到管理页面
+                localStorage.setItem('adminLoggedIn', 'true');
+                window.location.href = 'admin.html';
+            } else {
+                showErrorModal('密码错误，请重试');
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</body></html>
