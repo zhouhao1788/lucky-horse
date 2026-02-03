@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>迎好运后台</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <h1>🐎 迎好运后台管理 🐎</h1>
+
+  <!-- 登录区 -->
+  <div id="loginBox" class="login-box">
+    <input type="password" id="pwd" placeholder="请输入后台密码" style="max-width:300px;">
+    <button onclick="login()" style="max-width:300px;">登录</button>
+  </div>
+
+  <!-- 管理区（默认隐藏） -->
+  <div id="adminPanel" style="display:none;">
+    <div class="admin-box">
+      <h3>① 导入迎好运名单（Excel）</h3>
+      <input type="file" id="importUsers" accept=".xlsx,.xls">
+      <button onclick="importUsers(document.getElementById('importUsers').files[0])">导入名单</button>
+    </div>
+
+    <div class="admin-box">
+      <h3>② 导入好运配置（名称+限额）</h3>
+      <input type="file" id="importAwards" accept=".xlsx,.xls">
+      <button onclick="importAwards(document.getElementById('importAwards').files[0])">导入好运</button>
+    </div>
+
+    <div class="admin-box">
+      <h3>③ 设置迎好运页背景图</h3>
+      <input type="file" id="bgFile" accept="image/*">
+      <button onclick="setBg()">上传背景</button>
+    </div>
+
+    <div class="admin-box">
+      <h3>④ 剩余好运统计</h3>
+      <div id="remainBox"></div>
+    </div>
+
+    <div class="admin-box">
+      <h3>⑤ 迎好运记录</h3>
+      <button onclick="exportWinners()">导出记录（CSV）</button>
+      <div id="winnerList"></div>
+    </div>
+
+    <div class="admin-box">
+      <h3>⑥ 清空所有数据（慎用）</h3>
+      <button onclick="clearAll()">清空名单/好运/记录</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  loadBackground();
+
+  // 登录
+  function login() {
+    const pwd = document.getElementById("pwd").value;
+    if (checkPwd(pwd)) {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+      renderAwards();
+      renderWinners();
+    } else {
+      alert("密码错误");
+    }
+  }
+
+  // 渲染剩余好运
+  function renderAwards() {
+    const list = getRemain();
+    const el = document.getElementById("remainBox");
+    if (list.length === 0) {
+      el.innerHTML = "<p>未导入好运配置</p>";
+      return;
+    }
+    let html = `<table class="table">
+      <tr><th>好运名称</th><th>总限额</th><th>已迎</th><th>剩余</th></tr>`;
+    list.forEach(item => {
+      html += `<tr>
+        <td>${item.name}</td>
+        <td>${item.limit}</td>
+        <td>${item.count}</td>
+        <td style="color:${item.remain>0?'green':'red'}">${item.remain}</td>
+      </tr>`;
+    });
+    html += "</table>";
+    el.innerHTML = html;
+  }
+
+  // 渲染中奖记录
+  function renderWinners() {
+    const winners = getStorage(STORAGE.WINNERS);
+    const el = document.getElementById("winnerList");
+    if (winners.length === 0) {
+      el.innerHTML = "<p>暂无迎好运记录</p>";
+      return;
+    }
+    let html = `<table class="table">
+      <tr><th>姓名</th><th>好运</th><th>时间</th></tr>`;
+    winners.forEach(w => {
+      html += `<tr><td>${w.name}</td><td>${w.award}</td><td>${w.time}</td></tr>`;
+    });
+    html += "</table>";
+    el.innerHTML = html;
+  }
+
+  // 上传背景
+  function setBg() {
+    const file = document.getElementById("bgFile").files[0];
+    if (!file) return alert("请选择图片");
+    const reader = new FileReader();
+    reader.onload = e => {
+      setBackground(e.target.result);
+      alert("背景图设置成功，前台已生效");
+    };
+    reader.readAsDataURL(file);
+  }
+</script>
+</body>
+</html>

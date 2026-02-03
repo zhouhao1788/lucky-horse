@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>迎好运</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <h1>🐎 马年迎好运 🐎</h1>
+  <input type="text" id="name" placeholder="请输入姓名" autocomplete="off">
+  <button id="drawBtn">开始迎好运</button>
+
+  <!-- 滚动动画区 -->
+  <div class="roll-box" id="rollBox" style="display:none;">
+    <div class="roll-text" id="rollText">好运滚滚来</div>
+  </div>
+
+  <div id="result" class="result"></div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  loadBackground();
+  const nameEl = document.getElementById("name");
+  const drawBtn = document.getElementById("drawBtn");
+  const resultEl = document.getElementById("result");
+  const rollBox = document.getElementById("rollBox");
+  const rollText = document.getElementById("rollText");
+
+  drawBtn.addEventListener("click", () => {
+    const name = nameEl.value.trim();
+    if (!name) {
+      resultEl.className = "result lose";
+      resultEl.textContent = "请输入姓名";
+      return;
+    }
+
+    // 显示动画
+    rollBox.style.display = "block";
+    rollText.className = "roll-text";
+    rollText.textContent = "好运正在派送中...";
+    resultEl.textContent = "";
+    drawBtn.disabled = true;
+
+    // 动画持续1.5秒后抽奖
+    setTimeout(() => {
+      const res = draw(name);
+      rollText.className = "roll-text roll-stop";
+      if (!res.ok) {
+        resultEl.className = "result lose";
+        resultEl.textContent = res.msg;
+        rollText.textContent = "迎好运失败";
+      } else {
+        resultEl.className = "result win";
+        if (res.isSpecial) {
+          rollText.textContent = "一马当先";
+          resultEl.textContent = `【${name}】恭喜迎到：一马当先`;
+        } else {
+          rollText.textContent = res.award;
+          resultEl.textContent = `【${name}】恭喜迎到：${res.award}`;
+        }
+      }
+      drawBtn.disabled = false;
+    }, 1500);
+  });
+</script>
+</body>
+</html>
